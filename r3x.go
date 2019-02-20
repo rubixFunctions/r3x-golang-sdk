@@ -2,27 +2,39 @@ package r3x
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
-type Message struct {
-	Message string
+
+
+func Execute (r3xFunc func() []byte) {
+	HTTPStream(r3xFunc)
 }
 
-func Execute () {
-	HTTPStream()
-}
+func HTTPStream(r3xFunc func() []byte){
 
-func HTTPStream(){
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
-		message := Message{"Hello r3x"}
 
-		js, err := json.Marshal(message)
+		fmt.Println(r3xFunc())
+
+		b := r3xFunc()
+
+		var f interface{}
+
+		err := json.Unmarshal(b, &f)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+
+		js, err := json.MarshalIndent(&f, "", "\t")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json")
+
 		w.Write(js)
 	})
 

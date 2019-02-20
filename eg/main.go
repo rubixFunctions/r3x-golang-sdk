@@ -5,5 +5,9 @@ import (
 )
 
 func main(){
-	r3x.Execute()
+	r3x.Execute(r3xFunc)
+}
+
+func r3xFunc() []byte {
+	return []byte(`{"message": "hello r3x"}`)
 }
