@@ -3,9 +3,9 @@ package r3x
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
-
 
 
 func Execute (r3xFunc func() []byte) {
@@ -15,8 +15,6 @@ func Execute (r3xFunc func() []byte) {
 func HTTPStream(r3xFunc func() []byte){
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
-
-		fmt.Println(r3xFunc())
 
 		b := r3xFunc()
 
@@ -38,6 +36,6 @@ func HTTPStream(r3xFunc func() []byte){
 		w.Write(js)
 	})
 
-	http.ListenAndServe(":8080", nil)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
