@@ -3,9 +3,10 @@ package r3x
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 )
-
 
 
 func Execute (r3xFunc func() []byte) {
@@ -13,10 +14,12 @@ func Execute (r3xFunc func() []byte) {
 }
 
 func HTTPStream(r3xFunc func() []byte){
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT environment variable was not set")
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
-
-		fmt.Println(r3xFunc())
 
 		b := r3xFunc()
 
@@ -38,6 +41,9 @@ func HTTPStream(r3xFunc func() []byte){
 		w.Write(js)
 	})
 
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		log.Fatal("Could not listen: ", err)
+	}
 }
 
