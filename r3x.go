@@ -22,31 +22,13 @@ func HTTPStream(r3xFunc func(map[string]interface{}) []byte){
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
 
-		body, err := ioutil.ReadAll(r.Body)
-		defer  r.Body.Close()
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-
-		var m map[string]interface{}
-
-		if len(body) > 0 {
-			var bf interface{}
-
-			err = json.Unmarshal(body, &bf)
-			if err != nil {
-				fmt.Println("error:", err)
-			}
-
-			m = bf.(map[string]interface{})
-		}
+		m := jsonHandler(w, r)
 
 		b := r3xFunc(m)
 
 		var f interface{}
 
-		err = json.Unmarshal(b, &f)
+		err := json.Unmarshal(b, &f)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
@@ -66,5 +48,28 @@ func HTTPStream(r3xFunc func(map[string]interface{}) []byte){
 	if err != nil {
 		log.Fatal("Could not listen: ", err)
 	}
+}
+
+func jsonHandler(w http.ResponseWriter, r *http.Request) map[string]interface{} {
+	body, err := ioutil.ReadAll(r.Body)
+	defer  r.Body.Close()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	var m map[string]interface{}
+
+	if len(body) > 0 {
+		var bf interface{}
+
+		err = json.Unmarshal(body, &bf)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+
+		m = bf.(map[string]interface{})
+	}
+
+	return m
 }
 

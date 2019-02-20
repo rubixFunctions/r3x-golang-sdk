@@ -11,6 +11,11 @@ func main(){
 
 func r3xFunc(input map[string]interface{}) []byte {
 	name := input["name"]
-	response := fmt.Sprintf(`{"message": "hello %s"}`, name)
+	var response string
+	if name != nil {
+		response = fmt.Sprintf(`{"message": "hello %s"}`, name)
+	} else {
+		response = `{"message": "no input r3x"}`
+	}
 	return []byte(response)
 }
