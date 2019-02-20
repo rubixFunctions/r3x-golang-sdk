@@ -24,7 +24,7 @@ func HTTPStream(r3xFunc func(map[string]interface{}) []byte){
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
 
 		if r.Method != "POST" {
-			http.Error(w, "Invalid Request", http.StatusInternalServerError)
+			errorHandler(w, "Invalid Request", http.StatusInternalServerError)
 			return
 		}
 
@@ -36,12 +36,13 @@ func HTTPStream(r3xFunc func(map[string]interface{}) []byte){
 
 		err := json.Unmarshal(b, &f)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			errorHandler(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		js, err := json.MarshalIndent(&f, "", "\t")
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			errorHandler(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -61,7 +62,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) map[string]interface{} 
 	body, err := ioutil.ReadAll(r.Body)
 	defer  r.Body.Close()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	var m map[string]interface{}
@@ -71,8 +72,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) map[string]interface{} 
 
 		err = json.Unmarshal(body, &bf)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			fmt.Println("error:", err)
+			errorHandler(w, err.Error(), http.StatusInternalServerError)
 		}
 
 		m = bf.(map[string]interface{})
@@ -81,3 +81,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) map[string]interface{} 
 	return m
 }
 
+func errorHandler(w http.ResponseWriter, error string, num int){
+	fmt.Println("Error : " , error)
+	http.Error(w,error, num)
+}
