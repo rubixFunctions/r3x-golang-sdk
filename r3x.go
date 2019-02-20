@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 
@@ -13,6 +14,10 @@ func Execute (r3xFunc func() []byte) {
 }
 
 func HTTPStream(r3xFunc func() []byte){
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT environment variable was not set")
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
 
@@ -36,6 +41,9 @@ func HTTPStream(r3xFunc func() []byte){
 		w.Write(js)
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		log.Fatal("Could not listen: ", err)
+	}
 }
 
