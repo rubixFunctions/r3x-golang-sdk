@@ -3,17 +3,18 @@ package r3x
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 )
 
 
-func Execute (r3xFunc func() []byte) {
+func Execute (r3xFunc func(map[string]interface{}) []byte) {
 	HTTPStream(r3xFunc)
 }
 
-func HTTPStream(r3xFunc func() []byte){
+func HTTPStream(r3xFunc func(map[string]interface{}) []byte){
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("PORT environment variable was not set")
@@ -21,11 +22,31 @@ func HTTPStream(r3xFunc func() []byte){
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
 
-		b := r3xFunc()
+		body, err := ioutil.ReadAll(r.Body)
+		defer  r.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		var m map[string]interface{}
+
+		if len(body) > 0 {
+			var bf interface{}
+
+			err = json.Unmarshal(body, &bf)
+			if err != nil {
+				fmt.Println("error:", err)
+			}
+
+			m = bf.(map[string]interface{})
+		}
+
+		b := r3xFunc(m)
 
 		var f interface{}
 
-		err := json.Unmarshal(b, &f)
+		err = json.Unmarshal(b, &f)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
