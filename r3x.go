@@ -16,11 +16,17 @@ func Execute (r3xFunc func(map[string]interface{}) []byte) {
 
 func HTTPStream(r3xFunc func(map[string]interface{}) []byte){
 	port := os.Getenv("PORT")
+
 	if port == "" {
 		log.Fatal("PORT environment variable was not set")
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
+
+		if r.Method != "POST" {
+			http.Error(w, "Invalid Request", http.StatusInternalServerError)
+			return
+		}
 
 		m := jsonHandler(w, r)
 
@@ -30,7 +36,7 @@ func HTTPStream(r3xFunc func(map[string]interface{}) []byte){
 
 		err := json.Unmarshal(b, &f)
 		if err != nil {
-			fmt.Println("error:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
 		js, err := json.MarshalIndent(&f, "", "\t")
@@ -40,6 +46,7 @@ func HTTPStream(r3xFunc func(map[string]interface{}) []byte){
 		}
 
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 
 		w.Write(js)
 	})
@@ -54,7 +61,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) map[string]interface{} 
 	body, err := ioutil.ReadAll(r.Body)
 	defer  r.Body.Close()
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	var m map[string]interface{}
@@ -64,6 +71,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) map[string]interface{} 
 
 		err = json.Unmarshal(body, &bf)
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			fmt.Println("error:", err)
 		}
 
